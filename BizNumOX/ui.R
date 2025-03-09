@@ -1,10 +1,8 @@
-# app_ui.R
-
 library(shiny)
 library(shinyjs)
-library(bslib)   # Bootstrap 5 테마
+library(bslib)  # Bootstrap 5 테마
 library(DT)
-library(showtext) # 구글 폰트 사용
+library(showtext)  # 구글 폰트 사용
 
 font_add_google("Nanum Gothic", "nanumgothic")
 showtext_auto()
@@ -69,7 +67,7 @@ ui <- fluidPage(
     "))
   ),
   
-  titlePanel("사업자등록번호 조회 시스템 (고급 UI)"),
+  titlePanel("사업자등록번호 조회 시스템"),
   
   # 탭 구조로 안내/메인 분리
   tabsetPanel(
@@ -87,10 +85,10 @@ ui <- fluidPage(
                      tags$li("3) '잘못된 사업자번호만 보기' → 필요한 경우 셀 수정"),
                      tags$li("4) '수정 내용 저장'으로 원본 데이터에 반영"),
                      tags$li("5) '전체 테이블 보기'로 전체 데이터 확인"),
-                     tags$li("6) API 조회할 열 선택 후 '조회 실행'"),
+                     tags$li("6) '운영 여부 조회' 열 선택 후 '조회 실행'"),
                      tags$li("7) '결과 다운로드'로 Excel 파일 다운로드")
                    ),
-                   p("전처리 후 API 조회를 진행해야 올바른 결과를 얻을 수 있습니다.")
+                   p("전처리 후 운영 여부 조회를 진행해야 올바른 결과를 얻을 수 있습니다.")
                  )
                )
              )
@@ -101,7 +99,8 @@ ui <- fluidPage(
                sidebarPanel(
                  wellPanel(
                    h5("1단계: 파일 업로드"),
-                   fileInput("file1", "엑셀 파일 업로드 (xlsx)", accept = ".xlsx")
+                   fileInput("file1", "엑셀 파일 또는 CSV 업로드", accept = c(".xlsx", ".csv"),
+                             multiple = FALSE) 
                  ),
                  wellPanel(
                    h5("2단계: 전처리"),
@@ -114,7 +113,7 @@ ui <- fluidPage(
                    actionButton("save_changes_button", "수정 내용 저장", class = "btn btn-primary")
                  ),
                  wellPanel(
-                   h5("3단계: API 조회"),
+                   h5("3단계: 운영 여부 조회"),
                    uiOutput("column_selector_api"),
                    actionButton("check_button", "조회 실행", class = "btn btn-primary")
                  ),
@@ -129,8 +128,7 @@ ui <- fluidPage(
                ),
                mainPanel(
                  tabsetPanel(
-                   tabPanel("전체 테이블", DTOutput("file_preview")),
-                   tabPanel("조회 결과", DTOutput("result_table"))
+                   tabPanel("전체 테이블", DTOutput("file_preview"))
                  )
                )
              )
