@@ -8,14 +8,14 @@ library(jsonlite)
 library(readxl)
 library(future.apply)
 
-# 서버 측 파일 크기 제한 설정 (예: 100MB)
+# 서버 측 파일 크기 제한 설정 (100MB)
 options(shiny.maxRequestSize = 100 * 1024^2)
 
-# 병렬 처리 시 전역 변수 직렬화 최대 크기 (예: 3GB)
+# 병렬 처리 시 전역 변수 직렬화 최대 크기 (3GB)
 options(future.globals.maxSize = 3 * 1024^3)
 
 # 병렬 플랜 설정
-plan(multisession, workers = 1)
+plan(multisession, workers = 4)
 
 ##########################################################
 # API 호출 함수
@@ -380,4 +380,3 @@ server <- function(input, output, session) {
     )
   })
 }
-
