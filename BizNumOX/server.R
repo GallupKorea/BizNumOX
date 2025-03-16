@@ -6,16 +6,9 @@ library(dplyr)
 library(httr)
 library(jsonlite)
 library(readxl)
-library(future.apply)
 
 # 서버 측 파일 크기 제한 설정 (100MB)
 options(shiny.maxRequestSize = 100 * 1024^2)
-
-# 병렬 처리 시 전역 변수 직렬화 최대 크기 (3GB)
-options(future.globals.maxSize = 3 * 1024^3)
-
-# 병렬 플랜 설정
-plan(multisession, workers = 4)
 
 ##########################################################
 # API 호출 함수
@@ -53,17 +46,17 @@ rename_api_vars <- function(df) {
   
   # 3) 변수명 매핑: 소문자 기준
   var_map <- c(
-    b_no               = "사업자번호 확인",
-    b_stt              = "사업 운영 여부",
-    b_stt_cd           = "사업 운영 여부 코드",
-    tax_type           = "과세 유형",
-    tax_type_cd        = "과세 유형 코드",
-    end_dt             = "폐업일",
-    utcc_yn            = "단위과세전환폐업여부",
-    tax_type_change_dt = "최근 과세 유형 전환 일자",
-    invoice_apply_dt   = "세금계산서 적용 일자",
-    rbf_tax_type       = "직전 과세 유형",
-    rbf_tax_type_cd    = "직전 과세 유형 코드"
+    b_no                  = "사업자번호 확인",
+    b_stt                 = "사업 운영 여부",
+    b_stt_cd              = "사업 운영 여부 코드",
+    tax_type              = "과세 유형",
+    tax_type_cd           = "과세 유형 코드",
+    end_dt                = "폐업일",
+    utcc_yn               = "단위과세전환폐업여부",
+    tax_type_change_dt    = "최근 과세 유형 전환 일자",
+    invoice_apply_dt      = "세금계산서 적용 일자",
+    rbf_tax_type          = "직전 과세 유형",
+    rbf_tax_type_cd       = "직전 과세 유형 코드"
   )
   
   # 4) 실제 존재하는 열만 rename
@@ -289,7 +282,7 @@ server <- function(input, output, session) {
   })
   
   ##########################################################
-  # 병렬 처리로 운영 여부 조회
+  # 순차 처리로 운영 여부 조회
   ##########################################################
   observeEvent(input$check_button, {
     
@@ -315,18 +308,22 @@ server <- function(input, output, session) {
     crn_list <- data[[col_api]]
     api_key <- "YgB%2F8EYn%2BBeebIgfD6jibP30%2FjQL8dFcDyEZoHqCWhiepCW4OWTgFPCNhTK63I8FOI9qPsJdE8tFk4bStzmHQQ%3D%3D"
     
-    # 4) 청크 분할
+    # 4) 청크 분할 (API 호출 제한 회피 및 진행률 표시 용이)
     crn_chunks <- split(crn_list, ceiling(seq_along(crn_list) / 100))
     
-    # 5) 진행 상태 표시 (병렬 작업)
+    # 5) 진행 상태 표시 (순차 작업)
     progress <- Progress$new(session)
     progress$set(message = "운영 여부 조회 중...", value = 0)
+    num_chunks <- length(crn_chunks)
+    results_list <- list()
     
-    # 6) 병렬 처리로 API 호출
-    results_list <- future_lapply(seq_along(crn_chunks), function(i) {
+    # 6) 순차적으로 API 호출
+    for (i in 1:num_chunks) {
       chunk <- crn_chunks[[i]]
-      get_api_data(chunk, api_key)
-    })
+      result <- get_api_data(chunk, api_key)
+      results_list[[i]] <- result
+      progress$inc(1/num_chunks, detail = paste0("청크 ", i, "/", num_chunks))
+    }
     
     progress$close()
     

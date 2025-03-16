@@ -5,8 +5,9 @@ account: sagf8q-choi0wonseok
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14194362
-bundleId: 9913889
+bundleId: 9950367
 url: https://sagf8q-choi0wonseok.shinyapps.io/BizNumOX/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: (마4-2)사업자등록번호 조회 시스템 앱 설명서.pdf
